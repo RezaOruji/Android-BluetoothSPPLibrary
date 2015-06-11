@@ -19,11 +19,13 @@ package app.akexorcist.bluetoothspp;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
+
 import app.akexorcist.bluetotohspp.library.BluetoothSPP;
 import app.akexorcist.bluetotohspp.library.BluetoothSPP.BluetoothConnectionListener;
 import app.akexorcist.bluetotohspp.library.BluetoothState;
@@ -31,6 +33,7 @@ import app.akexorcist.bluetotohspp.library.DeviceList;
 
 public class AutoConnectActivity extends Activity {
     BluetoothSPP bt;
+    Button btnSend = null;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +41,7 @@ public class AutoConnectActivity extends Activity {
 
         bt = new BluetoothSPP(this);
 
-        if(!bt.isBluetoothAvailable()) {
+        if (!bt.isBluetoothAvailable()) {
             Toast.makeText(getApplicationContext()
                     , "Bluetooth is not available"
                     , Toast.LENGTH_SHORT).show();
@@ -66,6 +69,14 @@ public class AutoConnectActivity extends Activity {
         bt.setAutoConnectionListener(new BluetoothSPP.AutoConnectionListener() {
             public void onNewConnection(String name, String address) {
                 Log.i("Check", "New Connection - " + name + " - " + address);
+
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        btnSend.performClick();
+                    }
+                }, 5000);
             }
 
             public void onAutoConnectionStarted() {
@@ -73,10 +84,10 @@ public class AutoConnectActivity extends Activity {
             }
         });
 
-        Button btnConnect = (Button)findViewById(R.id.btnConnect);
-        btnConnect.setOnClickListener(new OnClickListener(){
-            public void onClick(View v){
-                if(bt.getServiceState() == BluetoothState.STATE_CONNECTED) {
+        Button btnConnect = (Button) findViewById(R.id.btnConnect);
+        btnConnect.setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                if (bt.getServiceState() == BluetoothState.STATE_CONNECTED) {
                     bt.disconnect();
                 } else {
                     Intent intent = new Intent(getApplicationContext(), DeviceList.class);
@@ -93,10 +104,10 @@ public class AutoConnectActivity extends Activity {
 
     public void onStart() {
         super.onStart();
-        if(!bt.isBluetoothEnabled()) {
+        if (!bt.isBluetoothEnabled()) {
             bt.enable();
         } else {
-            if(!bt.isServiceAvailable()) {
+            if (!bt.isServiceAvailable()) {
                 bt.setupService();
                 bt.startService(BluetoothState.DEVICE_OTHER);
                 setup();
@@ -105,11 +116,11 @@ public class AutoConnectActivity extends Activity {
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == BluetoothState.REQUEST_CONNECT_DEVICE) {
-            if(resultCode == Activity.RESULT_OK)
+        if (requestCode == BluetoothState.REQUEST_CONNECT_DEVICE) {
+            if (resultCode == Activity.RESULT_OK)
                 bt.connect(data);
-        } else if(requestCode == BluetoothState.REQUEST_ENABLE_BT) {
-            if(resultCode == Activity.RESULT_OK) {
+        } else if (requestCode == BluetoothState.REQUEST_ENABLE_BT) {
+            if (resultCode == Activity.RESULT_OK) {
                 bt.setupService();
             } else {
                 Toast.makeText(getApplicationContext()
@@ -121,13 +132,13 @@ public class AutoConnectActivity extends Activity {
     }
 
     public void setup() {
-        Button btnSend = (Button)findViewById(R.id.btnSend);
-        btnSend.setOnClickListener(new OnClickListener(){
-            public void onClick(View v){
-                bt.send("Text", true);
+        btnSend = (Button) findViewById(R.id.btnSend);
+        btnSend.setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                bt.send("e", false);
             }
         });
 
-        bt.autoConnect("IOIO");
+        bt.autoConnect("Wake");
     }
 }
